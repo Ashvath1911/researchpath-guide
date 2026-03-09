@@ -1,0 +1,88 @@
+import { Tool } from '@/types';
+
+export const tools: Tool[] = [
+  {
+    id: 'study-design-chooser',
+    title: 'Study Design Chooser',
+    description: 'Answer a series of questions about your research goals to find the most appropriate study design for your project.',
+    category: 'Planning',
+    icon: 'FlaskConical',
+  },
+  {
+    id: 'pico-builder',
+    title: 'PICO / PECO / PEO Builder',
+    description: 'Build a structured research question step-by-step using the PICO, PECO, or PEO framework.',
+    category: 'Planning',
+    icon: 'Target',
+  },
+  {
+    id: 'hypothesis-builder',
+    title: 'Hypothesis Builder',
+    description: 'Generate well-formed null and alternative hypotheses based on your research question and variables.',
+    category: 'Planning',
+    icon: 'Lightbulb',
+  },
+  {
+    id: 'objective-builder',
+    title: 'Objective Builder',
+    description: 'Create SMART research objectives aligned with your question, design, and expected outcomes.',
+    category: 'Planning',
+    icon: 'Crosshair',
+  },
+  {
+    id: 'inclusion-exclusion-builder',
+    title: 'Inclusion/Exclusion Criteria Builder',
+    description: 'Systematically define and document your study inclusion and exclusion criteria with guided prompts.',
+    category: 'Planning',
+    icon: 'Filter',
+  },
+  {
+    id: 'search-string-builder',
+    title: 'Search String Builder',
+    description: 'Construct database search strings using Boolean operators, MeSH terms, and keyword combinations.',
+    category: 'Search',
+    icon: 'Search',
+  },
+  {
+    id: 'data-extraction-generator',
+    title: 'Data Extraction Template Generator',
+    description: 'Generate a customized data extraction form based on your study design and variables of interest.',
+    category: 'Data Collection',
+    icon: 'Table',
+  },
+  {
+    id: 'rob-tool-chooser',
+    title: 'Risk of Bias Tool Chooser',
+    description: 'Find the right risk of bias or quality assessment tool for your study design (RoB 2, NOS, JBI, etc.).',
+    category: 'Quality Assessment',
+    icon: 'Scale',
+  },
+  {
+    id: 'manuscript-section-planner',
+    title: 'Manuscript Section Planner',
+    description: 'Plan and organize each section of your manuscript with guided prompts and structural recommendations.',
+    category: 'Writing',
+    icon: 'PenTool',
+  },
+  {
+    id: 'journal-submission-checklist',
+    title: 'Journal Submission Checklist',
+    description: 'A comprehensive checklist to verify your submission package is complete and meets journal requirements.',
+    category: 'Submission',
+    icon: 'CheckSquare',
+  },
+  {
+    id: 'glossary-search',
+    title: 'Glossary Search',
+    description: 'Search for research terminology definitions, explanations, and examples in our comprehensive glossary.',
+    category: 'Learning',
+    icon: 'BookMarked',
+  },
+  {
+    id: 'confidence-tracker',
+    title: 'Research Confidence Tracker',
+    description: 'Track your confidence level across different research competencies and identify areas for growth.',
+    category: 'Progress',
+    icon: 'TrendingUp',
+  },
+];
