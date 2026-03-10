@@ -2,11 +2,12 @@ import React from 'react';
 import { useProjects } from '@/contexts/ProjectContext';
 import { stages } from '@/data/stages';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, Circle, Target, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Circle, Target } from 'lucide-react';
 
 const ProgressPage: React.FC = () => {
-  const { activeProject, projects } = useProjects();
+  const { activeProject, projects, milestones, toggleMilestone } = useProjects();
   const completed = activeProject?.completedStages || [];
+  const projectMilestones = milestones.filter(m => m.projectId === activeProject?.id);
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
@@ -21,7 +22,6 @@ const ProgressPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Overall */}
           <div className="card-elevated p-6">
             <h2 className="font-heading font-semibold mb-4">Overall Progress — {activeProject.title}</h2>
             <div className="flex justify-between text-sm mb-2">
@@ -31,7 +31,6 @@ const ProgressPage: React.FC = () => {
             <Progress value={activeProject.progress} className="h-3" />
           </div>
 
-          {/* Stage tracker */}
           <div className="card-elevated p-6">
             <h2 className="font-heading font-semibold mb-4">Stage Completion</h2>
             <div className="grid grid-cols-6 sm:grid-cols-9 gap-2">
@@ -49,25 +48,23 @@ const ProgressPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Milestones */}
           <div className="card-elevated p-6">
             <h2 className="font-heading font-semibold mb-4">Milestones</h2>
-            {activeProject.milestones.length === 0 ? (
+            {projectMilestones.length === 0 ? (
               <p className="text-sm text-muted-foreground">No milestones yet. Add milestones from your project settings.</p>
             ) : (
               <div className="space-y-2">
-                {activeProject.milestones.map(m => (
-                  <div key={m.id} className="flex items-center gap-3 text-sm">
-                    {m.completed ? <CheckCircle2 className="h-4 w-4" style={{ color: 'hsl(var(--sage))' }} /> : <Circle className="h-4 w-4 text-muted-foreground" />}
+                {projectMilestones.map(m => (
+                  <button key={m.id} onClick={() => toggleMilestone(m.id)} className="flex items-center gap-3 text-sm w-full text-left hover:bg-muted/50 rounded-lg p-1.5 -ml-1.5 transition-colors">
+                    {m.completed ? <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: 'hsl(var(--sage))' }} /> : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />}
                     <span className={m.completed ? 'line-through text-muted-foreground' : ''}>{m.title}</span>
                     {m.dueDate && <span className="text-xs text-muted-foreground ml-auto">{m.dueDate}</span>}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* All Projects Summary */}
           {projects.length > 1 && (
             <div className="card-elevated p-6">
               <h2 className="font-heading font-semibold mb-4">All Projects</h2>
