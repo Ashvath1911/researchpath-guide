@@ -3,14 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/contexts/ProjectContext';
 import { stages } from '@/data/stages';
-import { ArrowRight, FolderOpen, Compass, Map, Wrench, FileStack, BookOpen, GraduationCap, Play, Plus, Target, TrendingUp, AlertTriangle } from 'lucide-react';
+import { ArrowRight, FolderOpen, Compass, Wrench, FileStack, BookOpen, GraduationCap, Play, Plus, Target, TrendingUp, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import CautionBox from '@/components/CautionBox';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { projects, activeProject } = useProjects();
+  const { projects, activeProject, isLoading } = useProjects();
   const navigate = useNavigate();
 
   const currentStage = activeProject ? stages[activeProject.currentStageIndex] : null;
@@ -23,9 +23,16 @@ const Dashboard: React.FC = () => {
     { title: 'Learning', desc: 'Mini-guides and lessons', icon: GraduationCap, to: '/learning', color: 'hsl(var(--info))' },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
-      {/* Welcome */}
       <div className="card-elevated p-6 lg:p-8" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(224 40% 18%))' }}>
         <h1 className="text-2xl lg:text-3xl font-heading font-bold" style={{ color: 'hsl(var(--primary-foreground))' }}>
           Welcome back{user?.fullName ? `, ${user.fullName.split(' ')[0]}` : ''}
@@ -46,13 +53,12 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Project + Progress */}
       {activeProject && (
         <div className="grid md:grid-cols-2 gap-4">
           <div className="card-elevated p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-heading font-semibold">Current Project</h3>
-              <Link to={`/projects`} className="text-sm text-primary hover:underline">View all</Link>
+              <Link to="/projects" className="text-sm text-primary hover:underline">View all</Link>
             </div>
             <p className="font-medium">{activeProject.title}</p>
             <p className="text-sm text-muted-foreground mt-1">{activeProject.researchType || 'No type selected'} • {activeProject.specialty || 'No specialty'}</p>
@@ -64,7 +70,6 @@ const Dashboard: React.FC = () => {
               <Progress value={activeProject.progress} className="h-2" />
             </div>
           </div>
-
           <div className="card-elevated p-5">
             <h3 className="font-heading font-semibold mb-3">Current Stage</h3>
             {currentStage && (
@@ -86,7 +91,6 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Research Readiness + Stats */}
       <div className="grid md:grid-cols-3 gap-4">
         <div className="card-elevated p-5 flex items-center gap-4">
           <div className="h-12 w-12 rounded-xl flex items-center justify-center" style={{ background: 'hsl(var(--sage-light))' }}>
@@ -117,7 +121,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Access */}
       <div>
         <h2 className="section-heading mb-4">Quick Access</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -131,7 +134,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Guardrail */}
       <CautionBox>
         <p className="font-medium">Educational Guidance Only</p>
         <p className="mt-1">ResearchPath provides structured educational guidance. It is not a substitute for expert supervision, statistical consulting, or institutional review.</p>

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Compass, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Compass, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 
 const steps = [
   { title: 'About You', description: 'Tell us about yourself' },
@@ -15,6 +15,7 @@ const steps = [
 
 const Onboarding: React.FC = () => {
   const [step, setStep] = useState(0);
+  const [saving, setSaving] = useState(false);
   const { updateProfile } = useAuth();
   const navigate = useNavigate();
 
@@ -25,8 +26,10 @@ const Onboarding: React.FC = () => {
 
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));
 
-  const handleFinish = () => {
-    updateProfile({ ...form, onboarded: true });
+  const handleFinish = async () => {
+    setSaving(true);
+    await updateProfile({ ...form, onboarded: true });
+    setSaving(false);
     navigate('/');
   };
 
@@ -41,7 +44,6 @@ const Onboarding: React.FC = () => {
 
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-lg">
-          {/* Progress */}
           <div className="flex gap-2 mb-8">
             {steps.map((_, i) => (
               <div key={i} className="flex-1 h-1.5 rounded-full" style={{ background: i <= step ? 'hsl(var(--sage))' : 'hsl(var(--muted))' }} />
@@ -53,10 +55,7 @@ const Onboarding: React.FC = () => {
 
           {step === 0 && (
             <div className="space-y-4">
-              <div>
-                <Label>Full Name</Label>
-                <Input value={form.fullName} onChange={e => set('fullName', e.target.value)} placeholder="Dr. Jane Smith" className="mt-1.5" />
-              </div>
+              <div><Label>Full Name</Label><Input value={form.fullName} onChange={e => set('fullName', e.target.value)} placeholder="Dr. Jane Smith" className="mt-1.5" /></div>
               <div>
                 <Label>Your Role</Label>
                 <Select value={form.role} onValueChange={v => set('role', v)}>
@@ -71,10 +70,7 @@ const Onboarding: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Specialty / Field</Label>
-                <Input value={form.specialty} onChange={e => set('specialty', e.target.value)} placeholder="e.g., Internal Medicine, Surgery, Public Health" className="mt-1.5" />
-              </div>
+              <div><Label>Specialty / Field</Label><Input value={form.specialty} onChange={e => set('specialty', e.target.value)} placeholder="e.g., Internal Medicine" className="mt-1.5" /></div>
               <div>
                 <Label>Research Experience</Label>
                 <Select value={form.experienceLevel} onValueChange={v => set('experienceLevel', v)}>
@@ -171,7 +167,10 @@ const Onboarding: React.FC = () => {
             {step < 2 ? (
               <Button onClick={() => setStep(step + 1)}>Continue <ArrowRight className="h-4 w-4 ml-2" /></Button>
             ) : (
-              <Button onClick={handleFinish}>Get Started <ArrowRight className="h-4 w-4 ml-2" /></Button>
+              <Button onClick={handleFinish} disabled={saving}>
+                {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Get Started <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
             )}
           </div>
         </div>
