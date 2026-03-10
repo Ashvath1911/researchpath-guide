@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +9,18 @@ import { Label } from '@/components/ui/label';
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) { setError(error.message); return; }
     setSent(true);
   };
 
@@ -23,6 +33,8 @@ const ForgotPassword: React.FC = () => {
 
         <h2 className="text-2xl font-heading font-bold mb-1">Reset your password</h2>
         <p className="text-muted-foreground mb-8">Enter your email and we'll send you a reset link.</p>
+
+        {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
 
         {sent ? (
           <div className="info-box">
@@ -38,7 +50,7 @@ const ForgotPassword: React.FC = () => {
                 <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="pl-10" placeholder="you@example.com" required />
               </div>
             </div>
-            <Button type="submit" className="w-full">Send Reset Link</Button>
+            <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Sending...' : 'Send Reset Link'}</Button>
           </form>
         )}
       </div>

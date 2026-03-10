@@ -19,7 +19,7 @@ const SettingsPage: React.FC = () => {
         <div className="space-y-4">
           <div>
             <Label>Full Name</Label>
-            <Input value={user.fullName} onChange={e => updateProfile({ fullName: e.target.value })} className="mt-1.5" />
+            <Input defaultValue={user.fullName} onBlur={e => updateProfile({ fullName: e.target.value })} className="mt-1.5" />
           </div>
           <div>
             <Label>Email</Label>
@@ -27,15 +27,15 @@ const SettingsPage: React.FC = () => {
           </div>
           <div>
             <Label>Role</Label>
-            <Input value={user.role} onChange={e => updateProfile({ role: e.target.value })} className="mt-1.5" />
+            <Input defaultValue={user.role} onBlur={e => updateProfile({ role: e.target.value })} className="mt-1.5" />
           </div>
           <div>
             <Label>Specialty</Label>
-            <Input value={user.specialty} onChange={e => updateProfile({ specialty: e.target.value })} className="mt-1.5" />
+            <Input defaultValue={user.specialty} onBlur={e => updateProfile({ specialty: e.target.value })} className="mt-1.5" />
           </div>
           <div>
             <Label>Experience Level</Label>
-            <Input value={user.experienceLevel} onChange={e => updateProfile({ experienceLevel: e.target.value })} className="mt-1.5" />
+            <Input defaultValue={user.experienceLevel} onBlur={e => updateProfile({ experienceLevel: e.target.value })} className="mt-1.5" />
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@ const SettingsPage: React.FC = () => {
       </div>
 
       <CautionBox>
-        <p>ResearchPath stores data locally in your browser. To persist data across devices, a backend integration would be needed.</p>
+        <p>Your data is securely stored in the cloud. You can access it from any device by signing in.</p>
       </CautionBox>
     </div>
   );

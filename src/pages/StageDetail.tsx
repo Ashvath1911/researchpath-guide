@@ -1,20 +1,109 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { stages } from '@/data/stages';
 import { useProjects } from '@/contexts/ProjectContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { templates } from '@/data/templates';
 import { tools } from '@/data/tools';
-import { ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, ShieldAlert, HelpCircle, Lightbulb, FileStack, Wrench } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, ShieldAlert, HelpCircle, Lightbulb, FileStack, Wrench, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import CautionBox from '@/components/CautionBox';
+import { useToast } from '@/hooks/use-toast';
 
 const StageDetail: React.FC = () => {
   const { id } = useParams();
   const stage = stages.find(s => s.id === id);
-  const { activeProject, toggleStageComplete, updateProject } = useProjects();
+  const { activeProject, toggleStageComplete } = useProjects();
+  const { session } = useAuth();
+  const { toast } = useToast();
   const [notes, setNotes] = useState('');
+  const [noteId, setNoteId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [checklistState, setChecklistState] = useState<Record<string, boolean>>({});
+
+  // Load saved notes and checklist for this stage
+  const loadStageData = useCallback(async () => {
+    if (!session?.user || !activeProject || !stage) return;
+
+    // Load notes
+    const { data: noteData } = await supabase
+      .from('project_notes')
+      .select('*')
+      .eq('project_id', activeProject.id)
+      .eq('stage_id', stage.id)
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (noteData && noteData.length > 0) {
+      setNotes(noteData[0].content);
+      setNoteId(noteData[0].id);
+    } else {
+      setNotes('');
+      setNoteId(null);
+    }
+
+    // Load checklist state
+    const { data: stageData } = await supabase
+      .from('project_stages')
+      .select('*')
+      .eq('project_id', activeProject.id)
+      .eq('stage_id', stage.id)
+      .single();
+
+    if (stageData?.checklist_state && typeof stageData.checklist_state === 'object') {
+      setChecklistState(stageData.checklist_state as Record<string, boolean>);
+    } else {
+      setChecklistState({});
+    }
+  }, [session?.user, activeProject?.id, stage?.id]);
+
+  useEffect(() => { loadStageData(); }, [loadStageData]);
+
+  const saveNotes = async () => {
+    if (!session?.user || !activeProject || !stage) return;
+    setSaving(true);
+    if (noteId) {
+      await supabase.from('project_notes').update({ content: notes }).eq('id', noteId);
+    } else {
+      const { data } = await supabase.from('project_notes').insert({
+        project_id: activeProject.id,
+        user_id: session.user.id,
+        stage_id: stage.id,
+        content: notes,
+      }).select().single();
+      if (data) setNoteId(data.id);
+    }
+    setSaving(false);
+    toast({ title: 'Notes saved' });
+  };
+
+  const toggleChecklist = async (itemId: string) => {
+    if (!session?.user || !activeProject || !stage) return;
+    const newState = { ...checklistState, [itemId]: !checklistState[itemId] };
+    setChecklistState(newState);
+
+    // Upsert stage checklist state
+    const { data: existing } = await supabase
+      .from('project_stages')
+      .select('id')
+      .eq('project_id', activeProject.id)
+      .eq('stage_id', stage.id)
+      .single();
+
+    if (existing) {
+      await supabase.from('project_stages').update({ checklist_state: newState }).eq('id', existing.id);
+    } else {
+      await supabase.from('project_stages').insert({
+        project_id: activeProject.id,
+        user_id: session.user.id,
+        stage_id: stage.id,
+        checklist_state: newState,
+      });
+    }
+  };
 
   if (!stage) return <div className="p-8">Stage not found.</div>;
 
@@ -39,7 +128,6 @@ const StageDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* What & Why */}
       <div className="grid md:grid-cols-2 gap-4 mt-6">
         <div className="card-elevated p-5">
           <h3 className="font-heading font-semibold mb-2">What this stage means</h3>
@@ -51,7 +139,6 @@ const StageDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Step-by-step */}
       <h2 className="section-heading mt-8 mb-4">Step-by-Step Guide</h2>
       <div className="card-elevated p-5">
         <ol className="space-y-3">
@@ -64,7 +151,6 @@ const StageDetail: React.FC = () => {
         </ol>
       </div>
 
-      {/* Common Mistakes */}
       <h2 className="section-heading mt-8 mb-4">Common Beginner Mistakes</h2>
       <div className="card-elevated p-5">
         <ul className="space-y-2">
@@ -77,18 +163,19 @@ const StageDetail: React.FC = () => {
         </ul>
       </div>
 
-      {/* Checklist */}
       <h2 className="section-heading mt-8 mb-4">Checklist</h2>
       <div className="card-elevated p-5 space-y-3">
         {stage.checklist.map(item => (
           <label key={item.id} className="flex items-center gap-3 text-sm cursor-pointer">
-            <Checkbox />
-            <span>{item.label}</span>
+            <Checkbox
+              checked={!!checklistState[item.id]}
+              onCheckedChange={() => toggleChecklist(item.id)}
+            />
+            <span className={checklistState[item.id] ? 'line-through text-muted-foreground' : ''}>{item.label}</span>
           </label>
         ))}
       </div>
 
-      {/* Red Flags */}
       {stage.redFlags.length > 0 && (
         <>
           <h2 className="section-heading mt-8 mb-4">Red Flags</h2>
@@ -105,7 +192,6 @@ const StageDetail: React.FC = () => {
         </>
       )}
 
-      {/* When to seek help */}
       <div className="info-box mt-6 flex gap-3">
         <HelpCircle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: 'hsl(var(--info))' }} />
         <div>
@@ -114,7 +200,6 @@ const StageDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Tips */}
       {stage.tips.length > 0 && (
         <>
           <h2 className="section-heading mt-8 mb-4">Tips</h2>
@@ -131,7 +216,6 @@ const StageDetail: React.FC = () => {
         </>
       )}
 
-      {/* Examples */}
       {stage.examples.length > 0 && (
         <>
           <h2 className="section-heading mt-8 mb-4">Examples</h2>
@@ -143,7 +227,6 @@ const StageDetail: React.FC = () => {
         </>
       )}
 
-      {/* Related Templates & Tools */}
       {(relatedTemplates.length > 0 || relatedTools.length > 0) && (
         <div className="grid sm:grid-cols-2 gap-4 mt-8">
           {relatedTemplates.length > 0 && (
@@ -175,11 +258,16 @@ const StageDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Notes */}
+      {/* Notes with save */}
       <h2 className="section-heading mt-8 mb-4">Your Notes</h2>
       <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add your notes for this stage..." className="min-h-[120px]" />
+      <div className="mt-2 flex justify-end">
+        <Button variant="outline" size="sm" onClick={saveNotes} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+          Save Notes
+        </Button>
+      </div>
 
-      {/* Stage completion */}
       {activeProject && (
         <div className="mt-6">
           <Button variant={isComplete ? 'outline' : 'default'} onClick={() => toggleStageComplete(activeProject.id, stage.index)}>
@@ -189,7 +277,6 @@ const StageDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Navigation */}
       <div className="flex justify-between mt-10 pt-6 border-t border-border">
         {prev ? (
           <Link to={`/stages/${prev.id}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">

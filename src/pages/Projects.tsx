@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useProjects } from '@/contexts/ProjectContext';
-import { Plus, MoreVertical, Archive, Trash2, FolderOpen } from 'lucide-react';
+import { Plus, MoreVertical, Archive, Trash2, FolderOpen, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,21 +10,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const Projects: React.FC = () => {
-  const { projects, activeProject, createProject, setActiveProject, updateProject, deleteProject } = useProjects();
+  const { projects, activeProject, createProject, setActiveProject, updateProject, deleteProject, isLoading } = useProjects();
   const [open, setOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState('');
   const [researchType, setResearchType] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [topic, setTopic] = useState('');
 
-  const handleCreate = () => {
-    createProject({ title, researchType, specialty, topic });
+  const handleCreate = async () => {
+    setCreating(true);
+    await createProject({ title, researchType, specialty, topic });
     setTitle(''); setResearchType(''); setSpecialty(''); setTopic('');
     setOpen(false);
+    setCreating(false);
   };
 
   const visibleProjects = projects.filter(p => p.status !== 'archived');
   const archivedProjects = projects.filter(p => p.status === 'archived');
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
@@ -57,7 +68,10 @@ const Projects: React.FC = () => {
               </div>
               <div><Label>Specialty</Label><Input value={specialty} onChange={e => setSpecialty(e.target.value)} placeholder="e.g., Cardiology" className="mt-1.5" /></div>
               <div><Label>Topic Area</Label><Input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g., Telemedicine in heart failure" className="mt-1.5" /></div>
-              <Button onClick={handleCreate} className="w-full" disabled={!title}>Create Project</Button>
+              <Button onClick={handleCreate} className="w-full" disabled={!title || creating}>
+                {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Create Project
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -78,12 +92,9 @@ const Projects: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium truncate">{p.title}</h3>
                   {activeProject?.id === p.id && <span className="sage-badge">Active</span>}
-                  {p.status === 'completed' && <span className="sage-badge">Completed</span>}
                 </div>
                 <p className="text-sm text-muted-foreground mt-0.5">{p.researchType || 'No type'} • {p.specialty || 'No specialty'}</p>
-                <div className="mt-2 max-w-xs">
-                  <Progress value={p.progress} className="h-1.5" />
-                </div>
+                <div className="mt-2 max-w-xs"><Progress value={p.progress} className="h-1.5" /></div>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>

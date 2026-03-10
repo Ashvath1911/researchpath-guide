@@ -11,20 +11,39 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup, updateProfile } = useAuth();
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
     try {
       await signup(email, password);
-      updateProfile({ fullName: name });
-      navigate('/onboarding');
+      setSuccess(true);
+    } catch (err: any) {
+      setError(err?.message || 'Signup failed');
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-8">
+        <div className="w-full max-w-sm text-center">
+          <div className="h-16 w-16 rounded-2xl mx-auto mb-6 flex items-center justify-center" style={{ background: 'hsl(var(--sage))' }}>
+            <Compass className="h-8 w-8" style={{ color: 'hsl(var(--sage-foreground))' }} />
+          </div>
+          <h2 className="text-2xl font-heading font-bold mb-2">Check your email</h2>
+          <p className="text-muted-foreground mb-6">We've sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</p>
+          <Link to="/login"><Button variant="outline">Back to Sign In</Button></Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -34,7 +53,7 @@ const Signup: React.FC = () => {
             <Compass className="h-8 w-8" style={{ color: 'hsl(var(--sage-foreground))' }} />
           </div>
           <h1 className="text-4xl font-heading font-bold mb-4" style={{ color: 'hsl(var(--primary-foreground))' }}>Begin Your Research Journey</h1>
-          <p className="text-lg opacity-80" style={{ color: 'hsl(var(--primary-foreground))' }}>Join thousands of researchers using structured guidance to produce better research, faster.</p>
+          <p className="text-lg opacity-80" style={{ color: 'hsl(var(--primary-foreground))' }}>Join researchers using structured guidance to produce better research, faster.</p>
         </div>
       </div>
 
@@ -42,6 +61,10 @@ const Signup: React.FC = () => {
         <div className="w-full max-w-sm">
           <h2 className="text-2xl font-heading font-bold mb-1">Create your account</h2>
           <p className="text-muted-foreground mb-8">Start your guided research workflow</p>
+
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
