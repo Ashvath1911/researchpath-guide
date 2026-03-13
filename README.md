@@ -1,6 +1,5 @@
 ## 2) `researchpath-guide` — README.md (copy-paste)
 
-```md
 # ResearchPath Guide
 
 ResearchPath Guide is a structured, step-by-step research workflow guide built to help trainees move from idea → protocol → search strategy → screening → data extraction → synthesis → writing.  
